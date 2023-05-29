@@ -1,0 +1,111 @@
+ 
+non-quote-any-char-no-newline := %x00-09 / %x0b-0c / %x0e-21 / %x23-26 / %x28-5b / %x5d-d7ff / %xE000-10FFFF
+
+any-char-no-newline := <non-quote-any-char-no-newline> / %x22 / %x27 / %x5C
+
+newline := [%x0d]%x0a
+
+any-char := <any-char-no-newline> / <newline>
+
+whitespace-char := %x09 / %x0a / %x0b / %x0c / %x0d%x0a / %x20 / %x8F / %x200E / %x200F / %x2028 / %x2029
+
+comment := <line-comment> / <block-comment>
+
+whitespace := <whitespace-char> / <comment> / <whitespace><whitespace>
+
+line-comment := "//" [*<any-char>] <newline>
+
+nested-comment := block-comment
+
+block-comment := "/* *(<any-char> / <nested-comment>) "*/"
+
+token-stream := [<whitespace>] *(<token-tree>[<whitespace>])
+
+ident-start := <XID_Start> / "_"
+
+ident-part := <XID_Part> / "_"
+
+bare-ident := <ident-start>[*<ident-part>]
+
+prefixed-ident := <bare-ident> / <bare-ident>"#"<bare-ident>
+
+keyword := "as" / "break" / "const" / "continue" / "else" / "enum" / "extern" / "false" / "fn" / "for" / "if" / "impl" 
+        / "in" / "let" / "loop" / "match" / "mod" / "move" / "pub" / "mut" / "ref" / "return" / "self" / "Self" / "static" 
+        / "struct" / "super" / "trait" / "true" / "type" / "unsafe" / "use" / "where" / "while" / "async" / "await" / "dyn"
+        / "abstract" / "become" / "do" / "final" / "macro" / "override" / "priv" / "typeof" / "unsized" / "virtual"
+        / "yield" / "try"
+
+bin-digit := "0" / "1"
+
+oct-digit := <bin-digit> / "2" / "3" / "4" / "5" / "6" / "7"
+
+dec-digit := <oct-digit> / "8" / "9"
+
+hex-alpha-lower := "a" / "b" / "c" / "d" / "e" / "f"
+
+hex-alpha-upper := "A" / "B" / "C" / "D" / "E" / "F"
+
+hex-digit := <dec-digit> / <hex-alpha-lower> / <hex-alpha-upper>
+
+bin-literal := "0b" *<bin-digit>
+
+oct-literal := "0o" *<oct-digit>
+
+dec-literal := *<dec-digit>
+
+hex-literal := "0x" *<hex-digit>
+
+bare-int-literal := <bin-literal> / <oct-literal> / <dec-literal> / <hex-literal>
+
+int-literal := <bare-int-literal> / <bare-int-literal><bare-identifer>
+
+float-suffix := ("f"/"F")[*<ident-part>] / ("d"/"D")[*<ident-part>]
+
+
+bare-float-literal := <dec-literal>"."[<dec-literal> [("e"/"E"<dec-literal>)]]
+
+float-literal := <bare-float-literal> / <bare-float-literal><float-suffix>
+
+char-literal-char := <non-quote-any-char-no-newline> / <newline> / %x22 / <escape-sequence>
+
+str-literal-char := <non-quote-any-char-no-newline> / <newline> / %x27 / <escape-sequence>
+
+escape-sequence := "/" ("/" / "n" / "r" / "t" / <unicode-escape> / <hex-escape>)
+
+unicode-escape := "u" (4<hex-digit> / "{" *<hex-digit> "}")
+
+hex-escape := "x" 2<hex-digit>
+
+bare-string-literal := %x22 *<str-literal-char> %x22
+
+bare-char-literal := %x27 <char-literal-char> %x27
+
+string-literal := <bare-string-literal> / <bare-ident><bare-string-literal> / <raw-string-literal>
+
+raw-string-literal-inner := "#" %x22 *<any-char> %x22 "#" / "#" <raw-string-literal-inner> "#"
+
+raw-string-literal-prefix := "r"
+
+raw-string-literal := <raw-string-literal-prefix> <raw-string-literal-inner>
+
+char-literal := <bare-char-literal> / <bare-ident><bare-char-literal>
+
+lone-token := <int-literal> / <float-literal> / <keyword> / <prefixied-identifier> / <string-literal> / <char-literal> / <symbol>
+
+symbol := "!" / "@" / "$" / "%" / "#" / "^" / "&" / "*" / "-" / "+" / "=" / "`" / "~" / "|" / "\" / ":" / "/" 
+        / ";" / "<" / "," / "." / ">" / "?"  / "!=" / "^=" / "~=" / "-=" / "+=" / "==" / "|=" / ">=" / "<=" 
+        / ">>" / "<<" / ">>=" / "&&" / "&&=" / "||" / "||=" / ".." / "..="
+
+
+delimited-token-stream := "(" [<token-stream>] ")" / "[" [<token-stream>] "]" / "{" [<token-stream>] "}"
+
+token-tree := <lone-token> / <delimied-token-stream>
+
+UTF-BOM := %xFEFF
+
+non-bracket-ascii := %x20-5A / %x5C / %x5E-7E
+
+HASH-BANG := "#!" <non-bracket-ascii> *<any-char-no-newline> <newline>
+
+
+program := [<UTF-BOM>] [<HASH-BANG>] <token-stream>
