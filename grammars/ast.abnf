@@ -1,0 +1,81 @@
+
+inner-attr = "#" "!" "[" <meta> "]"
+
+attr = "#" "[" <meta> "]"
+
+simple-path := <simple-prefix> / ([[<simple-prefix>] "::"] <ident> [*("::" <ident>)]) 
+
+simple-prefix := "self" / "Self" / "super" 
+
+simple-value := <string-literal> / <int-literal> / <float-literal> / "true" / "false" / <simple-path>
+
+meta := <meta-path> / <meta-value> / <meta-group>
+
+meta-path := <simple-path>
+
+meta-value := <meta-path> "=" <simple-value>
+
+meta-group := <meta-path> "("[<meta> [*("," <meta> ")]] ")"
+
+item-inner = <function> / <value-item> / <type-item> / <trait> / <impl> / <macro-def> / <import-block>
+
+item := [*<attr>] [<visibility>] <item-inner>
+
+function := [<abi-tag>] ["const"] "fn" <prefixed-ident> "(" [(<param>/<self-pattern>) [*("," <param>)]] [","] ")" ["->" <type>] " <fn-body>
+
+param := ["mut"] <param-name> ":" <type>
+
+self-pattern := "&" ["mut"] "self" / ["mut"] "self" [":" <type>]
+
+param-name := <prefixed-ident> / "_"
+
+path-ends-with-ident := ([[<prefix>] "::"] <ident> ["::"*(<path-componenent> "::") <ident>])
+path := <simple-prefix> / <path-ends-with-ident> ["::" <generics>]
+
+type-path := <path> /  <path-ends-with-ident> <generics>
+
+path-component := <prefixed-ident> / <generics>
+
+generics := "<" [<generic-entry> [*("," <generic-entry>)] [","]] ">"
+
+generic-entry := <non-path-type> / <path> / <simple-expr-no-ident>
+
+non-path-type := <pointer-type> / <reference-type> / <function-type> / "dyn" <trait-bound> / "(" <type> ")" / <tuple> / <array> / "!"
+
+type := <non-path-type> / <type-path>
+
+tuple := "(" ")" / "(" <type> "," [<type> [*("," <type>)] [","]] ")" 
+
+array := "[" <type> [";" <expr>]]
+
+pointer-type := "*" <pointer-attribute> ("const" / "mut") <type>
+
+reference-type := ("&" / "&&" ) <reference-attribute> ["mut"] <type>
+
+function-type := [<abi-tag>] "fn" "(" [<type> [*(","<type>)] "," ")" ["->" <type>]
+
+
+fn-body := ";" / <simple-block>
+
+simple-block := "{" [*<inner-attribute>] [*<statement>] [<expr>] "}"
+
+statement := <block> / <expr> ";" / <item>
+
+<expr> := <binary-expr>
+
+binary-expr := <unary-expr> [ <binary-op> <binary-expr>]
+
+unary-expr := <unary-op> <access-expr> 
+
+access-expr := <simple-expr> ["." (<field-name> / <await>)] ["(" [<expr> [*("," <expr>)] [","]] ")"] ["as" <type>]
+
+simple-expr := <simple-expr-no-ident> / "(" <expr> ")" / <path>
+
+simple-expr-no-ident := <block> / <string-literal> / <int-literal> / <float-literal> / "true" / "false" / <closure>
+
+closure := <closure-params> ["->" <type>] <expr>
+
+unary-op := "&&" ["mut"] / "&" ["mut"] / "+" / "-" / "!" / "~"
+
+binary-op := "<" /  ">" / "<=" / ">=" / ">>" / "<<" / "+" / "-" / "^" / "|" / "&" / "||" / "&&" / "*" / "/" / ">>=" / "<<=" / "+=" / "-=" / "|=" 
+    / "||=" / "&=" / "&&=" /  "*=" / "/="

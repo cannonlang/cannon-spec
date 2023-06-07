@@ -33,7 +33,7 @@ keyword := "as" / "break" / "const" / "continue" / "else" / "enum" / "extern" / 
         / "in" / "let" / "loop" / "match" / "mod" / "move" / "pub" / "mut" / "ref" / "return" / "self" / "Self" / "static" 
         / "struct" / "super" / "trait" / "true" / "type" / "unsafe" / "use" / "where" / "while" / "async" / "await" / "dyn"
         / "abstract" / "become" / "do" / "final" / "macro" / "override" / "priv" / "typeof" / "unsized" / "virtual"
-        / "yield" / "try"
+        / "yield" / "try" 
 
 bin-digit := "0" / "1"
 
